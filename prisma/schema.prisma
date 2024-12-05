@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // Sesuaikan dengan database Anda (mysql, postgresql, sqlite, dll.)
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userID       Int                 @id @default(autoincrement())
+  username     String              @unique
+  password     String
+  borrows      BorrowTransaction[] // Relasi dengan tabel BorrowTransaction
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model Inventory {
+  inventoryID  Int                 @id @default(autoincrement())
+  nama_item    String
+  category     String?
+  location     String?
+  quantity     Int
+  borrows      BorrowTransaction[] // Relasi dengan tabel BorrowTransaction
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  TransactionLog TransactionLog[]
+}
+
+model BorrowTransaction {
+  borrowID     Int                 @id @default(autoincrement())
+  userID       Int                 // Foreign key ke tabel User
+  inventoryID  Int                 // Foreign key ke tabel Inventory
+  borrowDate   DateTime            @default(now())
+  returnDate   DateTime?
+  status       String              // Status transaksi (borrowed/returned)
+  user         User                @relation(fields: [userID], references: [userID])
+  inventory    Inventory           @relation(fields: [inventoryID], references: [inventoryID])
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model TransactionLog {
+  logID        Int        @id @default(autoincrement())
+  borrowID     Int
+  userID       Int
+  inventoryID  Int        // Foreign key ke Inventory
+  inventory    Inventory  @relation(fields: [inventoryID], references: [inventoryID]) // Relasi ke Inventory
+  borrowDate   DateTime
+  returnDate   DateTime?
+  status       String
+  action       String
+  timestamp    DateTime   @default(now())
+}
+
